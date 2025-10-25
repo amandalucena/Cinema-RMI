@@ -26,7 +26,7 @@ public class FilmeModel implements Serializable{
         return duracao;
     }
 
-    public String getClassificacao_indicativa() {
+    public String getClassificacaoIndicativa() {
         return classificacao_indicativa;
     }
 
@@ -46,7 +46,7 @@ public class FilmeModel implements Serializable{
         this.duracao = duracao;
     }
 
-    public void setClassificacao_indicativa(String classificacao_indicativa) {
+    public void setClassificacaoIndicativa(String classificacao_indicativa) {
         this.classificacao_indicativa = classificacao_indicativa;
     }
 

@@ -1,109 +1,76 @@
 
 package DAO;
 
-import java.rmi.RemoteException;
-import servidor.controller.InterfaceIngresso;
-import java.rmi.server.UnicastRemoteObject; // permite que métodos sejam chamados remotamente, ou seja, entre diferentes computadores pela rede.
-import servidor.model.IngressoModel;
+import contract.model.IngressoModel;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.ResultSet;
-import servidor.util.Conection;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.ArrayList;
+import java.util.List;
+import servidor.util.ConexaoDB;
 
-public class IngressoDAO extends UnicastRemoteObject implements InterfaceIngresso{
+public class IngressoDAO {
 
-    
-    // o contrutor serve para registrar o objeto para comunicação remota do RMI
-    public IngressoDAO() throws RemoteException {
-        super ();
-    }
-    
+    public boolean inserir(IngressoModel ingresso) throws SQLException {
+        String sql = "INSERT INTO ingressos (sessao_id, nome_cliente, poltrona) VALUES (?, ?, ?)";
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-    @Override
-    public boolean inserir(IngressoModel ingresso) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection();
-        c.conectar();
-        String sql = "insert into ingressos (sessao_id, nome_cliente, poltrona) values (?,?,?)";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, ingresso.getSessao_id());
-            sentenca.setString(2, ingresso.getNome_cliente());
-            sentenca.setString(3, ingresso.getPoltrona());
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao inserir: "+ e.getMessage());
+            ps.setInt(1, ingresso.getSessao_id());
+            ps.setString(2, ingresso.getNome_cliente());
+            ps.setString(3, ingresso.getPoltrona());
+
+            int n = ps.executeUpdate();
+            return n > 0;
+        } catch (SQLIntegrityConstraintViolationException dup) {
+            // Violação de chave única (poltrona já ocupada) -> retorna false para indicar falha
+            return false;
         }
-        c.desconectar();
-        return retorno;
     }
 
-    @Override
-    public boolean editar(IngressoModel ingresso) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection ();
-        c.conectar();
-        String sql = "update ingressos set sessao_id = ?, nome_cliente = ?, poltrona = ? ";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, ingresso.getSessao_id());
-            sentenca.setString(2, ingresso.getNome_cliente());
-            sentenca.setString(3, ingresso.getPoltrona());
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao editar: "+ e.getMessage());
+    public boolean excluir(int idIngresso) throws SQLException {
+        String sql = "DELETE FROM ingressos WHERE id = ?";
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idIngresso);
+            return ps.executeUpdate() > 0;
         }
-        c.desconectar ();
-        return retorno;
     }
-        
 
-    @Override
-    public boolean excluir(IngressoModel ingresso) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection ();
-        String sql = "delete from ingressos where idIngresso = ? ";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, ingresso.getIdIngresso());
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao editar: "+ e.getMessage());
-        }
-        c.desconectar ();
-        return retorno;
-}
-
-        @Override
-        public IngressoModel pesquisar(IngressoModel ingresso) throws RemoteException {
+    public IngressoModel pesquisarPorId(int idIngresso) throws SQLException {
         IngressoModel retorno = null;
-        Conection c = new Conection();
-        c.conectar();
-        String sql = "select * from ingressos where id = ?";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, ingresso.getIdIngresso());
-            ResultSet rs = sentenca.executeQuery();
-            if(rs.next()){
-                retorno = new IngressoModel();
-                retorno.setIdIngresso(rs.getInt("id"));
-                retorno.setSessao_id(rs.getInt("sessao_id"));
-                retorno.setNome_cliente(rs.getString("nome_cliente"));
-                retorno.setPoltrona(rs.getString("poltrona"));
-                
+        String sql = "SELECT id, sessao_id, nome_cliente, poltrona FROM ingressos WHERE id = ?";
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, idIngresso);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    retorno = new IngressoModel();
+                    retorno.setId(rs.getInt("id"));
+                    retorno.setSessao_id(rs.getInt("sessao_id"));
+                    retorno.setNome_cliente(rs.getString("nome_cliente"));
+                    retorno.setPoltrona(rs.getString("poltrona"));
+                }
             }
-        }catch(SQLException e){
-            System.out.println("Erro ao pesquisar: "+ e.getMessage());
         }
-        c.desconectar();
         return retorno;
-            
-        }
-       
     }
 
-    
-
+    public List<String> buscarPoltronasPorSessaoId(int sessaoId) throws SQLException {
+        List<String> poltronas = new ArrayList<>();
+        String sql = "SELECT poltrona FROM ingressos WHERE sessao_id = ?";
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setInt(1, sessaoId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    poltronas.add(rs.getString("poltrona"));
+                }
+            }
+        }
+        return poltronas;
+    }
+}
+ 

@@ -1,104 +1,72 @@
 
 package DAO;
-import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject; 
+
+import contract.model.SessaoModel;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.ResultSet;
-import servidor.controller.InterfaceSessoes;
-import servidor.model.SessoesModel;
-import servidor.util.Conection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+import servidor.util.ConexaoDB;
 
-public class SessoesDAO extends UnicastRemoteObject implements InterfaceSessoes{
+public class SessoesDAO {
 
-    public SessoesDAO() throws RemoteException {
-    }
+    public List<SessaoModel> buscarPorFilmeId(int filmeId) throws SQLException {
+        List<SessaoModel> lista = new ArrayList<>();
+        String sql = "SELECT s.id, s.filme_id, s.sala_id, s.data_hora, s.preco_ingresso, sa.numero_sala "
+                + "FROM sessoes s JOIN salas sa ON s.sala_id = sa.id WHERE s.filme_id = ?";
 
-    @Override
-    public boolean inserir(SessoesModel sessao) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection();
-        c.conectar();
-        String sql = "insert into sessoes (filme_id, sala_id, data_hora, preco_ingresso) values (?,?,?,?)";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, sessao.getIdFilme());
-            sentenca.setInt(2, sessao.getIdSala());
-            sentenca.setTime(3, sessao.getDataHora());
-            sentenca.setFloat(4, sessao.getPrecoIngresso());
-            
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao inserir: "+ e.getMessage());
-        }
-        c.desconectar();
-        return retorno;
-    }
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
 
-    @Override
-    public boolean editar(SessoesModel sessao) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection ();
-        c.conectar();
-        String sql = "update sessoes set filme_id = ?, sala_id = ?, data_hora= ?, preco_ingresso =? ";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, sessao.getIdFilme());
-            sentenca.setInt(2, sessao.getIdSala());
-            sentenca.setTime(3, sessao.getDataHora());
-            sentenca.setFloat (4, sessao.getPrecoIngresso());
-           
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao editar: "+ e.getMessage());
-        }
-        c.desconectar ();
-        return retorno;
-    }
-
-    @Override
-    public boolean excluir(SessoesModel sessao) throws RemoteException {
-        boolean retorno = false;
-        Conection c = new Conection ();
-        String sql = "delete from sessoes where id = ? ";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, sessao.getIdSessoes());
-            if(!sentenca.execute())
-                retorno = true;
-        }catch(SQLException e){
-            System.out.println("Erro ao excluir: "+ e.getMessage());
-        }
-        c.desconectar ();
-        return retorno;
-    }
-
-    @Override
-    public SessoesModel pesquisar(SessoesModel sessao) throws RemoteException {
-       SessoesModel retorno = null;
-        Conection c = new Conection();
-        c.conectar();
-        String sql = "select * from sessoes where id = ?";
-        try{
-            PreparedStatement sentenca = c.conector.prepareStatement(sql);
-            sentenca.setInt(1, sessao.getIdSessoes());
-            ResultSet rs = sentenca.executeQuery();
-            if(rs.next()){
-                retorno = new SessoesModel();
-                retorno.setIdSessoes(rs.getInt("id"));
-                retorno.setIdFilme (rs.getInt("filme_id"));
-                retorno.setIdSala(rs.getInt("sala_id"));
-                retorno.setDataHora(rs.getTime("data_hora"));
-                retorno.setPrecoIngresso(rs.getFloat("preco_ingresso"));
+            ps.setInt(1, filmeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    SessaoModel sm = new SessaoModel();
+                    sm.setId(rs.getInt("id"));
+                    sm.setFilmeId(rs.getInt("filme_id"));
+                    sm.setSalaId(rs.getInt("sala_id"));
+                    Timestamp ts = rs.getTimestamp("data_hora");
+                    if (ts != null) {
+                        sm.setDataHora(ts.toLocalDateTime());
+                    }
+                    sm.setPrecoIngresso(rs.getDouble("preco_ingresso"));
+                    sm.setNumeroSala(rs.getInt("numero_sala"));
+                    lista.add(sm);
+                }
             }
-        }catch(SQLException e){
-            System.out.println("Erro ao pesquisar: "+ e.getMessage());
         }
-        c.desconectar();
+
+        return lista;
+    }
+
+    public SessaoModel pesquisarPorId(int id) throws SQLException {
+        SessaoModel retorno = null;
+        String sql = "SELECT s.id, s.filme_id, s.sala_id, s.data_hora, s.preco_ingresso, sa.numero_sala "
+                + "FROM sessoes s JOIN salas sa ON s.sala_id = sa.id WHERE s.id = ?";
+
+        try (Connection con = ConexaoDB.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    retorno = new SessaoModel();
+                    retorno.setId(rs.getInt("id"));
+                    retorno.setFilmeId(rs.getInt("filme_id"));
+                    retorno.setSalaId(rs.getInt("sala_id"));
+                    Timestamp ts = rs.getTimestamp("data_hora");
+                    if (ts != null) retorno.setDataHora(ts.toLocalDateTime());
+                    retorno.setPrecoIngresso(rs.getDouble("preco_ingresso"));
+                    retorno.setNumeroSala(rs.getInt("numero_sala"));
+                }
+            }
+        }
+
         return retorno;
     }
-    
-    
+
+    // Métodos de inserção/edição/exclusão podem ser adicionados conforme necessário
 }

@@ -1,56 +1,15 @@
 
 package servidor.model;
-import java.sql.Time;
 
-public class SessoesModel {
-    private int IdSessoes;
-    private int IdFilme;
-    private int IdSala;
-    private Time dataHora;
-    private float precoIngresso;
+/**
+ * Deprecated placeholder file.
+ *
+ * The project was migrated to use the shared contract model
+ * `contract.model.SessaoModel`. This file is intentionally left
+ * as a placeholder to avoid accidental compilation issues in IDEs
+ * that reference it. You can safely delete this file once your
+ * project and IDE are refreshed.
+ */
 
-    public int getIdSessoes() {
-        return IdSessoes;
-    }
+// Deprecated - no class definitions here anymore.
 
-    public int getIdFilme() {
-        return IdFilme;
-    }
-
-    public int getIdSala() {
-        return IdSala;
-    }
-
-    public Time getDataHora() {
-        return dataHora;
-    }
-
-    public void setIdSessoes(int IdSessoes) {
-        this.IdSessoes = IdSessoes;
-    }
-
-    public void setIdFilme(int IdFilme) {
-        this.IdFilme = IdFilme;
-    }
-
-    public void setIdSala(int IdSala) {
-        this.IdSala = IdSala;
-    }
-
-    public void setDataHora(Time dataHora) {
-        this.dataHora = dataHora;
-    }
-
-    public float getPrecoIngresso() {
-        return precoIngresso;
-    }
-
-    public void setPrecoIngresso(float precoIngresso) {
-        this.precoIngresso = precoIngresso;
-    }
-    
-    
-    
-    
-    
-}
