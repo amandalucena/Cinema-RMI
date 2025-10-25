@@ -23,9 +23,12 @@ public class Poltronas extends javax.swing.JInternalFrame {
     private javax.swing.JButton poltronaSelecionada = null;
 
     // Adicione estas constantes de cor para facilitar a manutenção.
+    // Disponível: cor escura neutra
     private final java.awt.Color COR_DISPONIVEL = java.awt.Color.decode("#424242");
-    private final java.awt.Color COR_OCUPADA = java.awt.Color.decode("#999999");
-    private final java.awt.Color COR_SELECIONADA = java.awt.Color.decode("#007BFF");
+    // Ocupada / indisponível: cinza apagado
+    private final java.awt.Color COR_OCUPADA = java.awt.Color.decode("#BDBDBD");
+    // Selecionada: verde (quando usuário seleciona uma poltrona)
+    private final java.awt.Color COR_SELECIONADA = java.awt.Color.decode("#4CAF50");
     
     public Poltronas(int idDaSessao, int numeroSala, CinemaRMI cinemaService) {
         this.idSessao = idDaSessao; 
@@ -73,10 +76,14 @@ public class Poltronas extends javax.swing.JInternalFrame {
                             // 4. Verifica se o nome do botão está na lista de ocupadas
                             if (poltronasOcupadas.contains(nomePoltrona)) {
                                 // Se está ocupada: pinta de cinza e desabilita
+                                botaoPoltrona.setOpaque(true);
+                                botaoPoltrona.setBorderPainted(false);
                                 botaoPoltrona.setBackground(COR_OCUPADA);
                                 botaoPoltrona.setEnabled(false);
                             } else {
                                 // Se está livre: pinta com a cor disponível e habilita
+                                botaoPoltrona.setOpaque(true);
+                                botaoPoltrona.setBorderPainted(false);
                                 botaoPoltrona.setBackground(COR_DISPONIVEL);
                                 botaoPoltrona.setEnabled(true);
                             }
@@ -720,7 +727,9 @@ public class Poltronas extends javax.swing.JInternalFrame {
         }
 
         // Pinta o novo botão clicado com a cor de "selecionado".
-        botaoClicado.setBackground(COR_SELECIONADA);
+    botaoClicado.setOpaque(true);
+    botaoClicado.setBorderPainted(false);
+    botaoClicado.setBackground(COR_SELECIONADA);
 
         // Agora, atualiza a variável para guardar este novo botão como o selecionado.
         poltronaSelecionada = botaoClicado;
