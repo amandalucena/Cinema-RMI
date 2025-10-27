@@ -36,6 +36,12 @@ public class Poltronas extends javax.swing.JInternalFrame {
 
         initComponents();
 
+        // Inicialmente o botão de compra fica desativado até que uma poltrona seja selecionada
+        jButton1.setOpaque(true);
+        jButton1.setBorderPainted(false);
+        jButton1.setBackground(COR_DISPONIVEL);
+        jButton1.setEnabled(false);
+
         String textoAtual = jLTituloPoltronas.getText();
         jLTituloPoltronas.setText(textoAtual + " " + numeroSala);
 
@@ -162,6 +168,9 @@ public class Poltronas extends javax.swing.JInternalFrame {
                         poltronaSelecionada.setBackground(COR_OCUPADA);
                         poltronaSelecionada.setEnabled(false);
                         poltronaSelecionada = null; // Limpa a seleção
+                        // Após compra bem-sucedida, desativa e restaura a cor do botão de compra
+                        jButton1.setBackground(COR_DISPONIVEL);
+                        jButton1.setEnabled(false);
                     }
 
                 } catch (Exception e) {
@@ -733,6 +742,12 @@ public class Poltronas extends javax.swing.JInternalFrame {
 
         // Agora, atualiza a variável para guardar este novo botão como o selecionado.
         poltronaSelecionada = botaoClicado;
+
+        // Habilita e colore o botão de compra quando houver uma seleção
+        jButton1.setOpaque(true);
+        jButton1.setBorderPainted(false);
+        jButton1.setBackground(COR_SELECIONADA);
+        jButton1.setEnabled(true);
     }
     
 
